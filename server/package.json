@@ -1,3 +1,4 @@
+
 {
   "name": "server",
   "version": "1.0.0",
@@ -5,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --watch .env index.js",
     "test": "node --test",
-    "start": "nodemon --watch .env index.js"
+    "start": "node index.js"
   },
   "author": "",
   "license": "ISC",

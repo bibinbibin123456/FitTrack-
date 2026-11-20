@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://fit-track-phi-five.vercel.app/api/:path*"
+    }
+  ]
+}

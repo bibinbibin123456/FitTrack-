@@ -1,4 +1,7 @@
-require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+
+require('dotenv').config({
+    path: require('path').join(__dirname, '.env'),
+});
 
 const express = require('express');
 const connectDB = require('./config/db');
@@ -30,23 +33,38 @@ app.use(cors({
             callback(null, true);
             return;
         }
+
         callback(null, false);
     },
     credentials: true,
 }));
 
-const PORT = process.env.PORT || 4000;
+app.use('/api', async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (error) {
+        console.error('Database connection failed:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Database connection failed',
+        });
+    }
+}, apiRateLimit, apiRouter);
 
-app.use('/api', apiRateLimit, apiRouter);
+if (require.main === module) {
+    const PORT = process.env.PORT || 4000;
 
-const startServer = async () => {
-    await connectDB();
-    app.listen(PORT, () => {
-        console.log(`Server started on port ${PORT}`);
-    });
-};
+    connectDB()
+        .then(() => {
+            app.listen(PORT, () => {
+                console.log(`Server started on port ${PORT}`);
+            });
+        })
+        .catch((error) => {
+            console.error('Server startup failed:', error.message);
+            process.exit(1);
+        });
+}
 
-startServer().catch((error) => {
-    console.error('Server startup failed:', error.message);
-    process.exitCode = 1;
-});
+module.exports = app;

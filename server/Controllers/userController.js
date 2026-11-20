@@ -1,3 +1,4 @@
+
 const UserDb = require("../Models/userModel");
 
 const { createToken } = require("../Utilities/generateToken");
@@ -158,7 +159,6 @@ const login = async (req, res) => {
             email: cleanEmail
         });
 
-        // Temporary diagnostic log
         console.log("Login - User found:", !!userExist);
 
         if (!userExist) {
@@ -172,7 +172,6 @@ const login = async (req, res) => {
             userExist.password
         );
 
-        // Temporary diagnostic log
         console.log("Login - Password matched:", passwordMatch);
 
         if (!passwordMatch) {
@@ -233,6 +232,59 @@ const getProfile = async (req, res) => {
 };
 
 
+// UPDATE PROFILE
+const updateProfile = async (req, res) => {
+    try {
+        const { name, phone } = req.body || {};
+
+        const cleanName = sanitizeText(name, 80);
+        const cleanPhone = sanitizeText(phone, 20);
+
+        if (!cleanName) {
+            return res.status(400).json({
+                error: "Enter a valid name"
+            });
+        }
+
+        if (!isValidIndianPhone(cleanPhone)) {
+            return res.status(400).json({
+                error: "Enter a valid 10-digit Indian mobile number"
+            });
+        }
+
+        const user = await UserDb.findByIdAndUpdate(
+            req.user.id,
+            {
+                name: cleanName,
+                phone: cleanPhone
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        ).select("-password");
+
+        if (!user) {
+            return res.status(404).json({
+                error: "User not found"
+            });
+        }
+
+        return res.status(200).json({
+            message: "Profile updated successfully",
+            user
+        });
+
+    } catch (error) {
+        console.error("Update profile error:", error);
+
+        return res.status(500).json({
+            error: "Failed to update profile"
+        });
+    }
+};
+
+
 // LOGOUT
 const logout = (req, res) => {
     res.clearCookie("token", {
@@ -248,9 +300,11 @@ const logout = (req, res) => {
 };
 
 
+// EXPORT CONTROLLERS
 module.exports = {
     register,
     login,
+    logout,
     getProfile,
-    logout
+    updateProfile
 };
